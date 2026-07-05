@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+      <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -206,7 +206,7 @@
   <div class="container">
     <header>
       <h1>🧪 Laboratorio de Síntesis Molecular</h1>
-      <p class="subtitle">Ingresa cuántas moléculas quiere usar tu equipo. La calculadora sumará las propiedades y dará pistas sin revelar la respuesta.</p>
+      <p class="subtitle">Ingresa cuántas moléculas quiere usar tu equipo. La calculadora sumará las propiedades y dará pistas sin revelar la respuesta. Recuerden: la toxicidad debe quedar entre 1 y 5.</p>
     </header>
 
     <div class="grid">
@@ -215,28 +215,28 @@
         <div class="molecule">
           <div>
             <strong>Ferronita</strong>
-            <small>Alta fuerza, pero reduce bastante la creatividad y la elasticidad.</small>
+            <small>Alta fuerza, pero reduce bastante la creatividad y la elasticidad. No aporta toxicidad.</small>
           </div>
           <input id="ferronita" type="number" min="0" max="10" value="0" />
         </div>
         <div class="molecule">
           <div>
             <strong>Creatonium</strong>
-            <small>Gran fuente de creatividad y elasticidad, aunque baja la fuerza.</small>
+            <small>Gran fuente de creatividad y elasticidad, aunque baja la fuerza. No aporta toxicidad.</small>
           </div>
           <input id="creatonium" type="number" min="0" max="10" value="0" />
         </div>
         <div class="molecule">
           <div>
             <strong>Flexilium</strong>
-            <small>Mejora la elasticidad y aporta creatividad, pero baja un poco la toxicidad.</small>
+            <small>Mejora la elasticidad y aporta creatividad. Aporta toxicidad leve.</small>
           </div>
           <input id="flexilium" type="number" min="0" max="10" value="0" />
         </div>
         <div class="molecule">
           <div>
             <strong>Toxigen</strong>
-            <small>Aumenta mucho la toxicidad, pero afecta la fuerza y la elasticidad.</small>
+            <small>Aumenta la toxicidad, pero afecta la fuerza y la elasticidad.</small>
           </div>
           <input id="toxigen" type="number" min="0" max="10" value="0" />
         </div>
@@ -257,10 +257,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>Ferronita</td><td>+9</td><td>-4</td><td>-2</td><td>+4</td></tr>
-            <tr><td>Creatonium</td><td>-3</td><td>+8</td><td>+3</td><td>+3</td></tr>
-            <tr><td>Flexilium</td><td>-1</td><td>+3</td><td>+4</td><td>-1</td></tr>
-            <tr><td>Toxigen</td><td>-4</td><td>+2</td><td>-1</td><td>+8</td></tr>
+            <tr><td>Ferronita</td><td>+9</td><td>-4</td><td>-2</td><td>0</td></tr>
+            <tr><td>Creatonium</td><td>-3</td><td>+8</td><td>+3</td><td>0</td></tr>
+            <tr><td>Flexilium</td><td>-1</td><td>+3</td><td>+4</td><td>+1</td></tr>
+            <tr><td>Toxigen</td><td>-4</td><td>+2</td><td>-1</td><td>+2</td></tr>
           </tbody>
         </table>
       </section>
@@ -289,7 +289,7 @@
         </div>
         <div class="result-row">
           <strong>Toxicidad</strong>
-          <span><span id="toxicidad">0</span> / 5</span>
+          <span><span id="toxicidad">0</span> / 1–5</span>
           <span id="toxicidadStatus" class="badge no">Falta</span>
         </div>
 
@@ -298,22 +298,24 @@
       </section>
     </div>
 
-    <p class="footer-note">Regla del juego: pueden usar máximo 10 moléculas. La calculadora ayuda, pero no revela la combinación ganadora.</p>
+    <p class="footer-note">Regla del juego: pueden usar máximo 10 moléculas en total. La toxicidad debe quedar entre 1 y 5; el resto de propiedades sí puede superar el mínimo.</p>
   </div>
 
   <script>
     const props = {
-      ferronita:   { fuerza: 9, creatividad: -4, elasticidad: -2, toxicidad: 4 },
-      creatonium:  { fuerza: -3, creatividad: 8, elasticidad: 3, toxicidad: 3 },
-      flexilium:   { fuerza: -1, creatividad: 3, elasticidad: 4, toxicidad: -1 },
-      toxigen:     { fuerza: -4, creatividad: 2, elasticidad: -1, toxicidad: 8 }
+      ferronita:   { fuerza: 9, creatividad: -4, elasticidad: -2, toxicidad: 0 },
+      creatonium:  { fuerza: -3, creatividad: 8, elasticidad: 3, toxicidad: 0 },
+      flexilium:   { fuerza: -1, creatividad: 3, elasticidad: 4, toxicidad: 1 },
+      toxigen:     { fuerza: -4, creatividad: 2, elasticidad: -1, toxicidad: 2 }
     };
 
-    const objetivos = { fuerza: 20, creatividad: 15, elasticidad: 8, toxicidad: 5 };
+    const objetivos = { fuerza: 20, creatividad: 15, elasticidad: 8 };
+    const toxicidadMin = 1;
+    const toxicidadMax = 5;
     const inputs = ["ferronita", "creatonium", "flexilium", "toxigen"];
 
     inputs.forEach(id => {
-      document.getElementById(id).addEventListener("input", calcular);
+      document.getElementById(id).addEventListener("input", () => ajustarLimiteTotal(id));
     });
 
     function valor(id) {
@@ -325,6 +327,20 @@
       return n;
     }
 
+    function ajustarLimiteTotal(idEditado) {
+      const cantidades = Object.fromEntries(inputs.map(id => [id, valor(id)]));
+      const total = Object.values(cantidades).reduce((a,b) => a + b, 0);
+
+      if (total > 10) {
+        const input = document.getElementById(idEditado);
+        const exceso = total - 10;
+        const nuevoValor = Math.max(0, cantidades[idEditado] - exceso);
+        input.value = nuevoValor;
+      }
+
+      calcular();
+    }
+
     function setStatus(prop, total) {
       const status = document.getElementById(prop + "Status");
       if (total >= objetivos[prop]) {
@@ -332,6 +348,20 @@
         status.className = "badge ok";
       } else {
         status.textContent = "Falta " + (objetivos[prop] - total);
+        status.className = "badge no";
+      }
+    }
+
+    function setToxicidadStatus(total) {
+      const status = document.getElementById("toxicidadStatus");
+      if (total >= toxicidadMin && total <= toxicidadMax) {
+        status.textContent = "Cumple";
+        status.className = "badge ok";
+      } else if (total < toxicidadMin) {
+        status.textContent = "Falta " + (toxicidadMin - total);
+        status.className = "badge no";
+      } else {
+        status.textContent = "Se pasó por " + (total - toxicidadMax);
         status.className = "badge no";
       }
     }
@@ -368,13 +398,15 @@
 
       for (const p in total) {
         document.getElementById(p).textContent = total[p];
-        setStatus(p, total[p]);
+        if (p === "toxicidad") setToxicidadStatus(total[p]);
+        else setStatus(p, total[p]);
       }
 
-      const cumple = totalMol <= 10 && Object.keys(objetivos).every(p => total[p] >= objetivos[p]);
+      const toxicidadValida = total.toxicidad >= toxicidadMin && total.toxicidad <= toxicidadMax;
+      const cumple = totalMol <= 10 && toxicidadValida && Object.keys(objetivos).every(p => total[p] >= objetivos[p]);
       const finalStatus = document.getElementById("finalStatus");
       if (cumple) {
-        finalStatus.textContent = "¡Misión cumplida! La molécula supera todos los parámetros.";
+        finalStatus.textContent = "¡Misión cumplida! La molécula cumple todos los parámetros, incluyendo toxicidad controlada.";
         finalStatus.className = "big-status ok";
       } else if (totalMol > 10) {
         finalStatus.textContent = "La composición no es válida: usaron más de 10 moléculas.";
@@ -390,21 +422,21 @@
     function generarPista(total, totalMol, cumple) {
       if (cumple) return "Pista: ya lograron una combinación válida. Ahora pueden intentar encontrar otra usando menos moléculas o dejando menos puntos desperdiciados.";
       if (totalMol > 10) return "Pista: reduzcan la cantidad total. El reto no permite más de 10 moléculas.";
+      if (total.toxicidad > toxicidadMax) return "Pista: la toxicidad se salió del rango permitido. Necesitan bajarla sin perder demasiada fuerza, creatividad o elasticidad.";
 
       const faltantes = Object.keys(objetivos)
         .map(p => ({ prop: p, falta: objetivos[p] - total[p] }))
         .filter(x => x.falta > 0)
         .sort((a,b) => b.falta - a.falta);
 
-      if (faltantes.length === 0) return "Pista: revisen el límite de moléculas y verifiquen los totales.";
+      if (faltantes.length === 0 && total.toxicidad < toxicidadMin) return "Pista: la toxicidad está por debajo del mínimo, pero cuidado: no puede pasar de 5.";
+      if (faltantes.length === 0) return "Pista: revisen el límite de moléculas y el rango de toxicidad.";
 
       const principal = faltantes[0].prop;
 
       if (principal === "fuerza") return "Pista: la fuerza está siendo el mayor problema. Busquen una molécula que suba mucho la fuerza, pero revisen qué propiedades les baja.";
       if (principal === "creatividad") return "Pista: les falta creatividad. Necesitan compensar moléculas fuertes con otras que aporten imaginación y equilibrio.";
       if (principal === "elasticidad") return "Pista: la elasticidad está baja. No todas las moléculas flexibles son buenas para toxicidad, así que revisen el balance.";
-      if (principal === "toxicidad") return "Pista: les falta toxicidad. Hay moléculas que la suben bastante, pero pueden debilitar otras propiedades.";
-
       return "Pista: revisen cuál propiedad está más lejos del objetivo y ajusten desde ahí.";
     }
 
